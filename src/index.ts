@@ -1,12 +1,10 @@
-import {IntermediateState, Fun} from "./fun"
+import {IntermediateState, Fun, Pair} from "./fun"
 import {Either} from "./either"
-import {Pair} from "./pair"
 
 // Coroutine monadic definition
 // The monadic definition of a coroutine. When used, the Coroutine takes a State (S) to perform
 // the operation on, it will result in either a NoResult or a Pair with the result of Action (A)
 // and a new state of (S).
-
 type CoroutineMonadic<State, Errored, Action> = Fun<State, Either<NoResult<State, Errored, Action>, Pair<Action, State>>>
 
 // Coroutine operations definitions
