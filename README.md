@@ -19,7 +19,7 @@ An example of code could be the following\:
 ```typescript
 RepeatUntil(s => s.Counter > 10,
   Wait(5).then(() =>
-  Do(s => ({...s, Counter:s.Counter+1}))
+    Do(s => ({...s, Counter:s.Counter+1}))
   )
 )
 ```
