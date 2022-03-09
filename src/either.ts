@@ -2,10 +2,10 @@ import { Fun } from "./fun"
 
 // Exporting a type Either, should have two options
 export type Either<optionA, optionB> = {
-    type: "optionA",
+    kind: "optionA",
     value: optionA
 } | {
-    type: "optionB",
+    kind: "optionB",
     value: optionB
 }
 
@@ -13,7 +13,7 @@ export type Either<optionA, optionB> = {
 export let optionA = <optionA, optionB>(): Fun<optionA, Either<optionA, optionB>> => {
     return Fun<optionA, Either<optionA, optionB>>((x: optionA) => {
         return {
-            type: "optionA",
+            kind: "optionA",
             value: x
         }
     })
@@ -23,7 +23,7 @@ export let optionA = <optionA, optionB>(): Fun<optionA, Either<optionA, optionB>
 export let optionB = <optionA, optionB>(): Fun<optionB, Either<optionA, optionB>> => {
     return Fun<optionB, Either<optionA, optionB>>((x: optionB) => {
         return {
-            type: "optionB",
+            kind: "optionB",
             value: x
         }
     })
