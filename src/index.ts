@@ -70,6 +70,33 @@ let Coroutine_map = <State, Errored, Action1, Action2>(f: Fun<Action1, Action2>)
         }
     })))
 
+// Coroutine joining, 'flattens' a nested Coroutine
+let Coroutine_join = <State, Errored, Action>(): Fun<Coroutine<State, Errored, Coroutine<State, Errored, Action>>, Coroutine<State, Errored, Action>> =>
+    Fun(nested => Coroutine<State, Errored, Action>(Fun(state => {
+        let actionState: Either<NoResult<State, Errored, Coroutine<State, Errored, Action>>, Pair<Coroutine<State, Errored, Action>, State>> = nested(state)
+
+        if (actionState.kind == "optionA") {
+            let failedOrCoroutineExcess: NoResult<State, Errored, Coroutine<State, Errored, Action>> = actionState.value
+
+            if (failedOrCoroutineExcess.kind == "optionA"){
+                return optionA<Errored, CoroutineExcess<State, Errored, Action>>()
+                    .then(optionA<NoResult<State, Errored, Action>, Pair<Action, State>>())
+                    (failedOrCoroutineExcess.value)
+            } else {
+                return Pair_map(identifier<State>(), Coroutine_join<State, Errored, Action>())
+                    .then(optionB<Errored, CoroutineExcess<State, Errored, Action>>())
+                    .then(optionA<NoResult<State, Errored, Action>, Pair<Action, State>>())
+                    (failedOrCoroutineExcess.value)
+            }
+        } else {
+            // Successfully computed a result
+            let computedValue: Pair<Coroutine<State, Errored, Action>, State> = actionState.value
+            let next: Coroutine<State, Errored, Action> = computedValue.first
+            let stateOfCoroutine: State = computedValue.second
+            return next(stateOfCoroutine)
+        }
+    })))
+
 export let succeed = <State, Errored, Action>(action: Action): Coroutine<State, Errored, Action> =>
     Coroutine(Fun(state => optionB<NoResult<State, Errored, Action>, Pair<Action, State>>()
     (Pair<Action, State>(action, state))))
