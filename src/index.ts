@@ -8,10 +8,11 @@ import {Either, optionA, optionB} from "./either"
 type CoroutineMonadic<State, Errored, Action> = Fun<State, Either<NoResult<State, Errored, Action>, Pair<Action, State>>>
 
 // Coroutine operations definitions
-interface CoroutineOperations<State, Errored, Action> {
-    // map: <State, Errored, Action, Action2>(fun: (_: Action) => Action2) => Coroutine<State, Errored, Action2>
+interface CoroutineOperations<State, Errored, Action1> {
+    map: <State, Errored, Action1, Action2>(fun: (_: Action1) => Action2) => Coroutine<State, Errored, Action2>
+    bind: <Action2>(f: (_: Action1) => Coroutine<State, Errored, Action2>) => Coroutine<State, Errored, Action2>
     // Do: <State, Errored, Action>() => {  }
-    // RepeatUntil: <State, Errored>(condition: (_:State) => boolean) => Coroutine<State, Errored, IntermediateState>
+    RepeatUntil: <State, Errored>(condition: (_:State) => boolean) => Coroutine<State, Errored, IntermediateState>
     // Wait: <State, Errored, Action>() => {  }
     // Any: <State, Errored, Action>() => {  }
     // All: <State, Errored, Action>() => {  }
@@ -96,6 +97,9 @@ let Coroutine_join = <State, Errored, Action>(): Fun<Coroutine<State, Errored, C
             return next(stateOfCoroutine)
         }
     })))
+
+let Coroutine_bind = <State, Errored, Action1, Action2>(f: Fun<Action1, Coroutine<State, Errored, Action2>>): Fun<Coroutine<State, Errored, Action1>, Coroutine<State, Errored, Action2>> =>
+    Coroutine_map<State, Errored, Action1, Coroutine<State, Errored, Action2>>(f).then(Coroutine_join())
 
 export let succeed = <State, Errored, Action>(action: Action): Coroutine<State, Errored, Action> =>
     Coroutine(Fun(state => optionB<NoResult<State, Errored, Action>, Pair<Action, State>>()
