@@ -4,7 +4,9 @@ import {
     Coroutine,
     succeed,
     failed,
-    suspended
+    suspended,
+    effect,
+    compute
 } from "../src/index"
 import { optionA, optionB} from "../src/either"
 
@@ -18,4 +20,10 @@ console.log(test2.kind == "optionA")
 // try catch, should return an error
 
 let numericVar = 0
-let test4 = unsafeRun((() => {numericVar++}).repeatUntil)
+let repetition = effect<never, void>(() => { numericVar++ }).repeatUntil(() => numericVar >= 16)
+let test4 = unsafeRun(repetition, {})
+
+let test5 = compute<number, never, number>(x => 10 + x)
+console.log(test5(5).value)
+
+console.log(numericVar == 16)
