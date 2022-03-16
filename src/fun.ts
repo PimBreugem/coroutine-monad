@@ -30,9 +30,9 @@ export let Pair_map = <firstFun, firstFun1, secondFun, secondFun1>(f_fun: Fun<fi
 
 
 //Example of how function works
-const id = <inputOutput>() => Fun<inputOutput, inputOutput>(x => x);
-const incr = Fun<number, number>(x => x + 1)
-const dupl = Fun<number, number>(x => x * 2)
-
-const g = incr.then(dupl)
-console.log(g(2))
+// const id = <inputOutput>() => Fun<inputOutput, inputOutput>(x => x);
+// const incr = Fun<number, number>(x => x + 1)
+// const dupl = Fun<number, number>(x => x * 2)
+//
+// const g = incr.then(dupl)
+// console.log(g(2))
