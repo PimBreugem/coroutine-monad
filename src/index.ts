@@ -20,20 +20,21 @@ interface CoroutineOperations<State, Errored, Action> {
 }
 
 // Export the Coroutine type, which is a combination* of monadic definition and behaviour from Operation
+// CoroutineMonadic<State, Errored, Action> &
 export type Coroutine<State, Errored, Action> = CoroutineMonadic<State, Errored, Action> & CoroutineOperations<State, Errored, Action>
 
-// Type of No Result should either error or go ahead with the coroutine, but because of circularity this should be implemented in another way ToDO
-type NoResult<State, Errored, Action> = Either<Errored, CoroutineMonadic<State, Errored, Action>>
+// Type of No Result should either error or go ahead with the coroutine
+type NoResult<State, Errored, Action> = Either<Errored, CoroutineExcess<State, Errored, Action>>
 
-interface CoroutineExcess<State, Errored, Action> extends Pair<State, Coroutine<State, Errored, Action>> {}
+interface CoroutineExcess<State, Errored, Action> extends Pair<State, Coroutine<State, Errored, Action>> { }
 
 // Creates a coroutine type of the given coroutineMonadic definition
 let Coroutine = <State, Errored, Action>(z: CoroutineMonadic<State, Errored, Action>): Coroutine<State, Errored, Action> => {
     return {
         ...z,
-        map: function<State, Errored, Action1, Action2>(this: Coroutine<State, Errored, Action1>, fun: (_:Action1) => ActionB): Coroutine<State, Errored, Action2>{
+        map: function<State, Errored, Action1, Action2>(this: Coroutine<State, Errored, Action1>, fun: (_:Action1) => Action2): Coroutine<State, Errored, Action2>{
             return Coroutine_map<State, Errored, Action1, Action2>(Fun(x => fun(x)))(this)
-        }
+        },
         RepeatUntil: function<State, Errored, Action>(this: Coroutine<State, Errored, Action>, condition: (_:State) => boolean): Coroutine<State, Errored, IntermediateState>{
             return RepeatUntil(condition, this)
         }
@@ -42,9 +43,10 @@ let Coroutine = <State, Errored, Action>(z: CoroutineMonadic<State, Errored, Act
 
 // Coroutine mapping, either computation is complete, coroutine has excess or the computation errored.
 export let Coroutine_map = <State, Errored, Action1, Action2>(fun: Fun<Action1, Action2>): Fun<Coroutine<State, Errored, Action1>, Coroutine<State, Errored, Action2>> =>
-    Fun(coroutine1 => Coroutine(Fun(state => {
+
+    Fun(c1 => Coroutine(Fun(state => {
         // computate the coroutine to find the current state (continued, failed, or succes)
-        let actionState: Either<NoResult<State, Errored, Action1>, Pair<Action1, State>> = coroutine1(state)
+        let actionState: Either<NoResult<State, Errored, Action1>, Pair<Action1, State>> = c1(state)
 
         // Check if the coroutine had excess, has failed, or if it has an result.
         if(actionState.kind == "optionA") {
@@ -80,15 +82,10 @@ let failed = <State, Errored, Action>(error: Errored): Coroutine<State, Errored,
 
 let continued = {}
 
-
-let bind_Corotine = <State, Errored, Action1, Action2>(function: Fun<Action1, Coroutine<State, Errored , Action2>>): Fun<Coroutine<State, Errored, Action1>, Coroutine<State, Errored, Action2>> =>
-
-
-
-// declaration of repeat until function
-let RepeatUntil = <State, Errored, Action>(condition: (_:State) => boolean, action: Coroutine<State, Errored, Action>): Coroutine<State, Errored, IntermediateState> =>
-    Coroutine(Fun(state => (action(state) ? succes<State, Errored, IntermediateState>({})  : action.bind(() => RepeatUntil(condition, action))).state()))
-    //bind should have his own operation in the coroutine interface
+// // declaration of repeat until function
+// let RepeatUntil = <State, Errored, Action>(condition: (_:State) => boolean, action: Coroutine<State, Errored, Action>): Coroutine<State, Errored, IntermediateState> =>
+//     Coroutine(Fun(state => (action(state) ? succes<State, Errored, IntermediateState>({})  : action.bind(() => RepeatUntil(condition, action))).state()))
+//     //bind should have his own operation in the coroutine interface
 
 
 

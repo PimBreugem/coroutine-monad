@@ -28,3 +28,16 @@ export let optionB = <optionA, optionB>(): Fun<optionB, Either<optionA, optionB>
         }
     })
 }
+
+//map either
+export let Either_map = <optionA, optionA1, optionB, optionB1>(f_fun: Fun<optionA, optionA1>, g_fun: Fun<optionB, optionB1>):
+    Fun<Either<optionA, optionB>, Either<optionA1, optionB1>> => {
+        return Fun((either: Either<optionA, optionB>): Either<optionA1, optionB1> => {
+            if (either.kind == "optionA") {
+                return optionA<optionA1, optionB1>()(f_fun(either.value))
+            } else {
+                return optionB<optionA1, optionB1>()(g_fun(either.value))
+            }
+        }
+    )
+}
