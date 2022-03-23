@@ -137,13 +137,15 @@ export let failed = <State, Errored, Action>(error: Errored): Coroutine<State, E
 //let continued = {}
 
 // declaration of repeat until function
-let repeatUntil = <State, Errored, Action>(condition: (_: State) => boolean, action: Coroutine<State, Errored, Action>): Coroutine<State, Errored, IntermediateState> =>
+export let repeatUntil = <State, Errored, Action>(condition: (_: State) => boolean, action: Coroutine<State, Errored, Action>): Coroutine<State, Errored, IntermediateState> =>
     Coroutine(Fun(state => (condition(state) ? succeed<State, Errored, IntermediateState>({}) : action.bind(() => repeatUntil(condition, action)))(state)))
 //bind should have his own operation in the coroutine interface
 
+// Look at the effects of a state
 export let effect = <Errored, Action>(f: (_: IntermediateState) => Action): Coroutine<IntermediateState, Errored, Action> =>
     compute<IntermediateState, Errored, Action>(s => f({}))
 
+// Compute, do something with the objects state but dont change it
 export let compute = <State, Errored, Action>(f: (_: State) => Action): Coroutine<State, Errored, Action> =>
     Coroutine(Fun(state => {
         try {
@@ -152,3 +154,18 @@ export let compute = <State, Errored, Action>(f: (_: State) => Action): Coroutin
             return optionA<NoResult<State, Errored, Action>, Pair<Action, State>>()(optionA<Errored, CoroutineExcess<State, Errored, Action>>()(e))
         }
     }))
+
+// Do, change the objects state
+export let Do = <State, Errored>(f: (_: State) => State): Coroutine<State, Errored, State> =>
+    Coroutine(Fun(state => {
+        try {
+            console.log(state)
+            let newState = f(state)
+            return optionB<NoResult<State, Errored, State>, Pair<State, State>>()(Pair<State, State>(newState, newState))
+        } catch (e) {
+            return optionA<NoResult<State, Errored, State>, Pair<State, State>>()(optionA<Errored, CoroutineExcess<State, Errored, State>>()(e))
+        }
+    }))
+
+export let Wait = <State>(ticks: number): Coroutine<State, IntermediateState, IntermediateState> =>
+    ticks <= 0 ? succeed<State, IntermediateState, IntermediateState>({}) : suspended<State, IntermediateState>().bind<IntermediateState>(() => Wait<State>(ticks--))
