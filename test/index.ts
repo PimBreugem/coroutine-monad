@@ -5,12 +5,10 @@ import {
     succeed,
     failed,
     suspended,
-    effect,
-    compute,
     Do,
-    repeatUntil,
-    Wait
-
+    compute,
+    RepeatUntil,
+    effect
 } from "../src/index"
 import { optionA, optionB} from "../src/either"
 
@@ -20,33 +18,34 @@ import { optionA, optionB} from "../src/either"
 // let test2 = unsafeRun(suspended<number, string>(), 2)
 // console.log(test2.kind == "optionA")
 //
-// //let test3 = unsafeRun(failed<number, string, boolean>("Error!"), 1)
+// // let test3 = unsafeRun(failed<number, string, boolean>("Error!"), 1)
 // // try catch, should return an error
 //
 // let numericVar = 0
 // let repetition = effect<never, void>(() => { numericVar++ }).repeatUntil(() => numericVar >= 16)
-// let test4 = unsafeRun(repetition, {})
-//
-// let test5 = compute<number, never, number>(x => 10 + x).bind(compute<number, never, number>(x => 10 + x))
-// console.log(test5(5).value)
-// console.log(test5(10).value)
-//
+// unsafeRun(repetition, {})
 // console.log(numericVar == 16)
+//
+// let test5 = compute<number, never, number>(x => 10 + x)
+// console.log(test5(5).value)
 
-// @ts-ignore
-let a = repeatUntil((s:{Counter:number}) => s.Counter > 10,
-    Wait(5).bind(() =>
-       Do((s:{Counter:number}) => {
-           console.log(s.Counter);
-           return ({...s, Counter:s.Counter++});
-       })
-    )
-)
+let s = {counter: 0}
+let a = RepeatUntil(() => s.counter >= 10, effect(() => {
+    s.counter++;
+    console.log(s.counter.toString());
+}))
+
+a(0)
+
+//Do(s => console.log(s))('a')
+
+//let s = {counter: 0}
+// RepeatUntil(s => s.Counter > 0,
+//     Do(s => ({...s, Counter: s.Counter+1}))
+// )({Counter:0})
 
 
-console.log(a({Counter:0}))
-
-// a = Wait(10000000000).bind(() => console.log('a'))
-// console.log('a')
-// console.log(a({Counter: 0}))
-
+// let b = repeatUntil((s: {counter:number}) => s.counter >= 10, effect((s: {counter:number}) =>
+//     ({...s, counter:s.counter+1})
+// ))
+// b({counter:0})

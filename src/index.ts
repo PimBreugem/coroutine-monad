@@ -12,7 +12,7 @@ interface CoroutineOperations<State, Errored, Action1> {
     map: <State, Errored, Action1, Action2>(f: (_: Action1) => Action2) => Coroutine<State, Errored, Action2>
     bind: <Action2>(f: (_: Action1) => Coroutine<State, Errored, Action2>) => Coroutine<State, Errored, Action2>
     // Do: <State, Errored, Action>() => {  }
-    repeatUntil: <State, Errored>(condition: (_: State) => boolean) => Coroutine<State, Errored, IntermediateState>
+    RepeatUntil: <State, Errored>(condition: (_: State) => boolean) => Coroutine<State, Errored, IntermediateState>
     // Wait: <State, Errored, Action>() => {  }
     // Any: <State, Errored, Action>() => {  }
     // All: <State, Errored, Action>() => {  }
@@ -41,8 +41,8 @@ let Coroutine = <State, Errored, Action1>(z: CoroutineMonadic<State, Errored, Ac
     cm.bind = function <Action2>(this: Coroutine<State, Errored, Action1>, f: (_: Action1) => Coroutine<State, Errored, Action2>): Coroutine<State, Errored, Action2> {
         return Coroutine_bind<State, Errored, Action1, Action2>(Fun(a => f(a)))(this)
     }
-    cm.repeatUntil = function <State, Errored, Action1>(this: Coroutine<State, Errored, Action1>, condition: (_: State) => boolean): Coroutine<State, Errored, IntermediateState> {
-        return repeatUntil(condition, this)
+    cm.RepeatUntil = function <State, Errored, Action1>(this: Coroutine<State, Errored, Action1>, condition: (_: State) => boolean): Coroutine<State, Errored, IntermediateState> {
+        return RepeatUntil(condition, this)
     }
     return cm
 }
@@ -137,8 +137,8 @@ export let failed = <State, Errored, Action>(error: Errored): Coroutine<State, E
 //let continued = {}
 
 // declaration of repeat until function
-export let repeatUntil = <State, Errored, Action>(condition: (_: State) => boolean, action: Coroutine<State, Errored, Action>): Coroutine<State, Errored, IntermediateState> =>
-    Coroutine(Fun(state => (condition(state) ? succeed<State, Errored, IntermediateState>({}) : action.bind(() => repeatUntil(condition, action)))(state)))
+export let RepeatUntil = <State, Errored, Action>(condition: (_: State) => boolean, action: Coroutine<State, Errored, Action>): Coroutine<State, Errored, IntermediateState> =>
+    Coroutine(Fun(state => (condition(state) ? succeed<State, Errored, IntermediateState>({}) : action.bind(() => RepeatUntil(condition, action)))(state)))
 //bind should have his own operation in the coroutine interface
 
 // Look at the effects of a state
